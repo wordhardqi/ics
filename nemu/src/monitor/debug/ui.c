@@ -37,7 +37,7 @@ static int cmd_q(char *args) {
 }
 
 static int cmd_help(char *args);
-
+static int cmd_single_step(char * args);
 static struct {
   char *name;
   char *description;
@@ -46,6 +46,7 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Single step excution", cmd_single_step },
 
   /* TODO: Add more commands */
 
@@ -75,7 +76,23 @@ static int cmd_help(char *args) {
   }
   return 0;
 }
+static int cmd_single_step(char * args){
+  char *arg =strtok(NULL, " ");
+  if(arg == NULL){
+    cpu_exec(1);
+  }else{
+    int numOfSteps;
+    sscanf(arg,"%d", &numOfSteps);
+    arg = strtok(NULL," ");
+    if(arg !=NULL){
+      printf("Usage: si [N]\n");
+    }else{
+      cpu_exec(numOfSteps);
+    }
 
+  }
+
+}
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {
     cmd_c(NULL);
