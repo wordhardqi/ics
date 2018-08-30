@@ -140,7 +140,7 @@ static int cmd_scan_mem(char * args){
     arg = strtok(NULL," ");
     if(arg !=NULL){
       unsigned int addr;
-      sscanf(arg,&addr);
+      sscanf(arg,"%x",&addr);
       arg = strtok(NULL," ");
       if(arg == NULL){
         for(int i = 0; i < num; ++i){
