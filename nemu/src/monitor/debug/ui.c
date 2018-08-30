@@ -7,6 +7,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+
+
 void cpu_exec(uint64_t);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
@@ -35,6 +37,7 @@ static int cmd_c(char *args) {
 static int cmd_q(char *args) {
   return -1;
 }
+static int cmd_info(char* args);
 
 static int cmd_help(char *args);
 static int cmd_single_step(char * args);
@@ -47,6 +50,7 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
   { "si", "Single step excution", cmd_single_step },
+  {"info", "Print registers/watchpoints info", cmd_info},
 
   /* TODO: Add more commands */
 
@@ -93,6 +97,36 @@ static int cmd_single_step(char * args){
   }
   return 0 ;
 
+}
+static int cmd_info(char* args){
+  char *arg = strtok(NULL, " ");
+  bool err = false;
+  if(arg ==NULL){
+    err = true;
+  }else{
+    char op;
+    sscanf(arg,"%c", & op);
+    arg = strtok(NULL," ");
+
+    if(arg == NULL){
+      if(op=='r'){
+        printf("Registers: \n");
+        for(int i = R_EAX; i<=R_EDI; ++i){
+          printf("%s: 00 %o \n", regsl[i], reg_l(i));
+        }
+      }else if(op == 'w'){
+
+      }else {
+        err = true;
+      }
+    }else{
+       err = true;
+    }
+  }
+  if(err == true){
+    printf("usage: info [r/w]\n");
+  }
+  return 0 ;
 }
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {
