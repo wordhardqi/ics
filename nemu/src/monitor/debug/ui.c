@@ -41,6 +41,8 @@ static int cmd_info(char* args);
 
 static int cmd_help(char *args);
 static int cmd_single_step(char * args);
+static int cmd_scan_mem(char * args);
+
 static struct {
   char *name;
   char *description;
@@ -51,6 +53,7 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   { "si", "Single step excution", cmd_single_step },
   {"info", "Print registers/watchpoints info", cmd_info},
+  {"x", "Scan memory", cmd_scan_mem},
 
   /* TODO: Add more commands */
 
@@ -127,6 +130,30 @@ static int cmd_info(char* args){
     printf("usage: info [r/w]\n");
   }
   return 0 ;
+}
+static int cmd_scan_mem(char * args){
+  char *arg =strtok(NULL, " ");
+  bool err = false;
+  if(arg != NULL){
+    int num ;
+    sscanf(arg,"%d",&num);
+    arg = strtok(NULL," ");
+    if(arg !=NULL){
+      unsigned int addr;
+      sscanf(arg,addr);
+      arg = strtok(NULL," ");
+      if(arg == NULL){
+        for(int i = 0; i < num; ++i){
+          printf("%08x:  %08x\n",addr+i,vaddr_read(addr+i,4));
+          return 0; 
+        }
+      }
+
+    } 
+  }
+  printf("usage: x [N] [Addr]");
+  return 0;
+
 }
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {
