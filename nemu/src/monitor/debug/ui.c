@@ -91,6 +91,7 @@ static int cmd_single_step(char * args){
     }
 
   }
+  return 0 ;
 
 }
 void ui_mainloop(int is_batch_mode) {
