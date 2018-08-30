@@ -133,7 +133,6 @@ static int cmd_info(char* args){
 }
 static int cmd_scan_mem(char * args){
   char *arg =strtok(NULL, " ");
-  bool err = false;
   if(arg != NULL){
     int num ;
     sscanf(arg,"%d",&num);
