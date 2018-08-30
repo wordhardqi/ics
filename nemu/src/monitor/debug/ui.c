@@ -143,9 +143,9 @@ static int cmd_scan_mem(char * args){
       arg = strtok(NULL," ");
       if(arg == NULL){
         for(int i = 0; i < num; ++i){
-          printf("%08x:  %08x\n",addr+i,vaddr_read(addr+i,4));
+          printf("%08x:  %08x\n",addr+i*4,vaddr_read(addr+i*4,4));
         }
-                  return 0; 
+        return 0; 
 
       }
 
