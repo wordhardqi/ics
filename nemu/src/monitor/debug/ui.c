@@ -112,7 +112,7 @@ static int cmd_info(char* args){
       if(op=='r'){
         printf("Registers: \n");
         for(int i = R_EAX; i<=R_EDI; ++i){
-          printf("%s: 00 %o \n", regsl[i], reg_l(i));
+          printf("%s: 00 %d \n", regsl[i], reg_l(i));
         }
       }else if(op == 'w'){
 
