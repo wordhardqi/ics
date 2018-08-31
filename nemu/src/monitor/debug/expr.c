@@ -149,7 +149,7 @@ uint32_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   Token* opStack[32];
-  int valStack[32];
+  uint32_t valStack[32];
   int opCur = 0;
   int valCur = 0;
   int i = 0;
