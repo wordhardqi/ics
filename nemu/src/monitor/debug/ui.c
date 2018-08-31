@@ -165,7 +165,7 @@ static int cmd_eval(char* args){
     Log_write("Fail to Eval");
     printf("Evaluation Unsuccess");
   }
-
+ return 0 ;
 }
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {
