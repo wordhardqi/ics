@@ -165,6 +165,7 @@ uint32_t expr(char *e, bool *success) {
           break;
       case TK_DIGITS:
          sscanf(tokens[i].str,"%d", &val);
+         LOG("get val %d\n", val);
          valStack[valCur] = val;
          ++valCur;
          break;

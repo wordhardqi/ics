@@ -160,7 +160,7 @@ static int cmd_eval(char* args){
   bool success; 
   uint32_t val = expr(args,&success);
   if(success){
-    printf("%d\n",val);
+    printf("%u\n",val);
   }else{
     Log_write("Fail to Eval");
     printf("Evaluation Unsuccess");
