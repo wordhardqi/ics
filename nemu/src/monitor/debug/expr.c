@@ -75,6 +75,7 @@ int applyOp(int val1, int val2, Token* token){
     case TK_MULT : return val1 * val2;
     case TK_DIV : return val1 / val2;
   }
+  return 0;
   // Log_write("error: unkonwn token %s", token->str);  
 }
 Token tokens[32];
