@@ -42,7 +42,7 @@ static int cmd_info(char* args);
 static int cmd_help(char *args);
 static int cmd_single_step(char * args);
 static int cmd_scan_mem(char * args);
-
+static int cmd_eval(char* args);
 static struct {
   char *name;
   char *description;
@@ -54,6 +54,7 @@ static struct {
   { "si", "Single step excution", cmd_single_step },
   {"info", "Print registers/watchpoints info", cmd_info},
   {"x", "Scan memory", cmd_scan_mem},
+  {"p", "Eval expression", cmd_eval},
 
   /* TODO: Add more commands */
 
@@ -153,6 +154,17 @@ static int cmd_scan_mem(char * args){
   }
   printf("usage: x [N] [Addr]");
   return 0;
+
+}
+static int cmd_eval(char* args){
+  bool success; 
+  uint32_t val = expr(args,&success);
+  if(success){
+    printf("%d\n",val);
+  }else{
+    Log_write("Fail to Eval");
+    printf("Evaluation Unsuccess");
+  }
 
 }
 void ui_mainloop(int is_batch_mode) {
