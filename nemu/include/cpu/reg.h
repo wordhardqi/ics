@@ -51,6 +51,8 @@ extern const char* regsl[];
 extern const char* regsw[];
 extern const char* regsb[];
 
+uint32_t reg_read(char* regName,bool* success);
+
 static inline const char* reg_name(int index, int width) {
   assert(index >= 0 && index < 8);
   switch (width) {

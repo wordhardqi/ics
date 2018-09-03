@@ -9,6 +9,7 @@ void init_wp_pool();
 void init_device();
 
 void reg_test();
+
 void init_qemu_reg();
 bool gdb_memcpy_to_qemu(uint32_t, void *, int);
 

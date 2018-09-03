@@ -41,3 +41,39 @@ void reg_test() {
 
   assert(eip_sample == cpu.eip);
 }
+uint32_t reg_read(char * regName,bool* success ){
+    int len_l = sizeof(regsl)/sizeof(regsl[0]);
+    int i;
+
+    for(i = 0; i < len_l; ++i)
+    {
+        if(strcmp(regsl[i], regName)==0)
+        {
+            *success =  true;
+            return reg_l(i);
+        }
+    }
+    int len_w = sizeof(regsw)/sizeof(regsw[0]);
+    for(i = 0; i < len_w; ++i)
+    {
+        if(strcmp(regsw[i], regName)==0)
+        {
+            *success = true;
+            return reg_w(i);
+        }
+    }
+    int len_b = sizeof(regsb)/sizeof(regsb[0]);
+    for(i = 0; i < len_b; ++i)
+    {
+        if(strcmp(regsb[i], regName)==0)
+        {
+             *success = true;
+            return reg_w(i);
+        }
+    }
+    *success = false;
+    return  0 ;
+
+
+
+}
