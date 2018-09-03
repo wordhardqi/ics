@@ -28,7 +28,7 @@ static struct rule {
          */
 
         {" +",     TK_NOTYPE},    // spaces
-        {"\\$\w+", TK_REG},
+        {"\\$[a-zA-Z]+", TK_REG},
 //        {"P",      TK_POS},
 //        {"N",      TK_NEG},
 //         {"D", TK_DREF},
@@ -36,14 +36,14 @@ static struct rule {
         {"!=",     TK_NOTEQ},
         {"!",      TK_NOT},
         {"&&",     TK_AND},
-        {"||",     TK_OR},
+        {"\\|\\|",     TK_OR},
         {"\\+",    TK_PLUS},         // plus
         {"-",      TK_MINUS},
         {"\\*",    TK_MULT},
         {"/",      TK_DIV},
         {"\\(",    TK_LP},
         {"\\)",    TK_RP},
-        {"0x\d+",  TK_HEX},
+        {"0[xX][0-9a-fA-F]+",  TK_HEX},
         {"[0-9]+", TK_DIGITS},
 
 
@@ -98,9 +98,9 @@ bool isUnary(int lastTokenType, int curTokenType) {
         case TK_OR:
 
             switch (curTokenType) {
-                case TK_NEG:
-                case TK_POS:
-                case TK_DREF:
+                case TK_MINUS:
+                case TK_PLUS:
+                case TK_MULT:
 
                     return true;
                 default:
@@ -240,6 +240,8 @@ static bool make_token(char *e) {
                     case TK_MULT:
                     case TK_DIV:
                     case TK_DIGITS:
+                    case TK_REG:
+                    case TK_HEX:
                     case TK_LP:
                     case TK_RP:
                     case TK_POS:
@@ -249,19 +251,28 @@ static bool make_token(char *e) {
                         if (isUnary(lastTokenType, tokens[nr_token].type)) {
                             switch (tokens[nr_token].type) {
                                 case TK_PLUS:
+                                    Log("change +-* to unary");
+
                                     tokens[nr_token].type = TK_POS;
+
+                                    break;
                                 case TK_MINUS:
+                                    Log("change +-* to unary");
+
                                     tokens[nr_token].type = TK_NEG;
+                                    break;
                                 case TK_MULT:
+                                    Log("change +-* to unary");
                                     tokens[nr_token].type = TK_DREF;
+                                    break;
                                 default:
                                     break;
                             }
                         }
-                        Log("change +-* to unary");
 
                         strncpy(tokens[nr_token].str, substr_start, substr_len);
                         tokens[nr_token].str[substr_len] = '\0';
+                        lastTokenType = tokens[nr_token].type;
                         ++nr_token;
                         break;
 
@@ -271,7 +282,6 @@ static bool make_token(char *e) {
 
 
                 }
-                lastTokenType = tokens[nr_token].type;
 
                 break;
             }
@@ -297,7 +307,7 @@ uint32_t expr(char *e, bool *success) {
 
     /* TODO: Insert codes to evaluate the expression. */
     Token *opStack[32];
-    uint32_t valStack[32];
+    long valStack[32];
     int opCur = -1;
     int valCur = -1;
     int i = 0;
@@ -324,9 +334,11 @@ uint32_t expr(char *e, bool *success) {
                 valStack[++valCur] = val;
                 break;
             case TK_REG:
-                reg_read(tokens[i].str + 1, &reg_read_success);
+                val= reg_read(tokens[i].str + 1, &reg_read_success);
                 if(reg_read_success){
                     Log("get val %u\n", val);
+                    valStack[++valCur] = val;
+
                 }else{
                     printf("Unkown register name %s", tokens[i].str);
                     *success = false;
@@ -338,33 +350,52 @@ uint32_t expr(char *e, bool *success) {
             case TK_MINUS:
             case TK_DIV:
             case TK_MULT:
+            case TK_NEG:
+            case TK_POS:
+            case TK_DREF:
+            case TK_NOT:
+            case TK_AND:
+            case TK_OR:
+            case TK_EQ:
+            case TK_NOTEQ:
                 while (opCur != -1
                        && precedence(opStack[opCur]->type) >= precedence(curToken->type)) {
-                    int val2 = valStack[valCur--];
-                    int val1 = valStack[valCur--];
-                    Token *op = opStack[opCur--];
-                    valStack[++valCur] = applyBinaryOp(val1, val2, op);
-
+                    if(unary(opStack[opCur]->type)){
+                        int val = valStack[valCur--];
+                        Token *op = opStack[opCur--];
+                        valStack[++valCur] = applyUnaryOp(val, op);
+                    }else {
+                        int val2 = valStack[valCur--];
+                        int val1 = valStack[valCur--];
+                        Token *op = opStack[opCur--];
+                        valStack[++valCur] = applyBinaryOp(val1, val2, op);
+                    }
 
                 }
                 opStack[++opCur] = curToken;
 
                 break;
-            case TK_NEG:
-            case TK_POS:
-                while (opCur != -1 &&
-                       precedence(opStack[opCur]->type) > precedence(curToken->type)
-                       && unary(precedence(opStack[opCur]->type))){
-                    int val = valStack[valCur--];
-                    int
-                }
+//            case TK_NEG:
+//            case TK_POS:
+
+//                while (opCur != -1 &&
+//                       precedence(opStack[opCur]->type) > precedence(curToken->type)
+//                       && unary(precedence(opStack[opCur]->type))){
+//                    int val = valStack[valCur--];
+//                    int
+//                }
                     case TK_RP:
                         while (opCur != -1 && opStack[opCur]->type != TK_LP) {
-
-                            int val2 = valStack[valCur--];
-                            int val1 = valStack[valCur--];
-                            Token *op = opStack[opCur--];
-                            valStack[++valCur] = applyBinaryOp(val1, val2, op);
+                            if(unary(opStack[opCur]->type)){
+                                int val = valStack[valCur--];
+                                Token *op = opStack[opCur--];
+                                valStack[++valCur] = applyUnaryOp(val, op);
+                            }else {
+                                int val2 = valStack[valCur--];
+                                int val1 = valStack[valCur--];
+                                Token *op = opStack[opCur--];
+                                valStack[++valCur] = applyBinaryOp(val1, val2, op);
+                            }
 
                         }
                 --opCur;
@@ -378,10 +409,16 @@ uint32_t expr(char *e, bool *success) {
 
     }
     while (opCur != -1) {
-        int val2 = valStack[valCur--];
-        int val1 = valStack[valCur--];
-        Token *op = opStack[opCur--];
-        valStack[++valCur] = applyBinaryOp(val1, val2, op);
+        if(unary(opStack[opCur]->type)){
+            int val = valStack[valCur--];
+            Token *op = opStack[opCur--];
+            valStack[++valCur] = applyUnaryOp(val, op);
+        }else {
+            int val2 = valStack[valCur--];
+            int val1 = valStack[valCur--];
+            Token *op = opStack[opCur--];
+            valStack[++valCur] = applyBinaryOp(val1, val2, op);
+        }
     }
     *success = true;
     return valStack[0];
