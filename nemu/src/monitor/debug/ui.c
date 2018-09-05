@@ -43,6 +43,8 @@ static int cmd_help(char *args);
 static int cmd_single_step(char * args);
 static int cmd_scan_mem(char * args);
 static int cmd_eval(char* args);
+static int cmd_set_watchpoint(char* args);
+static int cmd_del_watchpoint(char* args);
 static struct {
   char *name;
   char *description;
@@ -55,6 +57,8 @@ static struct {
   {"info", "Print registers/watchpoints info", cmd_info},
   {"x", "Scan memory", cmd_scan_mem},
   {"p", "Eval expression", cmd_eval},
+  {"w", "set watchpoints", cmd_set_watchpoint},
+  {"d", "delete watchpoints", cmd_del_watchpoint},
 
   /* TODO: Add more commands */
 
@@ -118,7 +122,15 @@ static int cmd_info(char* args){
         for(int i = R_EAX; i<=R_EDI; ++i){
           printf("%s: 0x %08X \n", regsl[i], reg_l(i));
         }
+        printf("%s: 0x %08X \n", "eip", cpu.eip);
+        printf("%s: 0x %08X \n", "eflags",cpu.eflags);
       }else if(op == 'w'){
+        printf("Watch points: \n");
+        WP* ph = wp_head();
+        while(ph !=NULL){
+          wp_printf(ph);
+          ph = ph->next;
+        }
 
       }else {
         err = true;
@@ -166,6 +178,19 @@ static int cmd_eval(char* args){
     printf("Evaluation Unsuccess");
   }
  return 0 ;
+}
+static int cmd_set_watchpoint(char* args){
+    WP* wp = new_wp();
+    set_watchpoint(wp,args);
+    return 0;
+}
+static  int cmd_del_watchpoint(char* args){
+  int NO;
+  sscanf(args,"%d", &NO);
+  WP wp;
+  wp.NO = NO;
+  free_wp(&wp);
+  Log("deleted watch point %d", NO);
 }
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {

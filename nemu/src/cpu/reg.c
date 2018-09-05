@@ -42,6 +42,11 @@ void reg_test() {
   assert(eip_sample == cpu.eip);
 }
 uint32_t reg_read(char * regName,bool* success ){
+
+    if(strcmp(regName, "eip") == 0){
+        *success = true;
+        return cpu.eip;
+    }
     int len_l = sizeof(regsl)/sizeof(regsl[0]);
     int i;
 
