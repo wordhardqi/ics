@@ -42,7 +42,7 @@ static inline make_DopHelper(SI) {
 // Todo:: not sure about this casting
   if(op->width ==4) {
       uint32_t val = instr_fetch(eip, op->width);
-      op->simm = *(int *) (&val);
+      op->simm = *(int32_t *) (&val);
   }else{
       uint8_t val = instr_fetch(eip,op->width);
       op->simm = *(int8_t*)(&val);

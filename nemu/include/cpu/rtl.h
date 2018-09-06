@@ -11,6 +11,8 @@ extern const rtlreg_t tzero;
 static inline void rtl_li(rtlreg_t *dest, uint32_t imm) {
     *dest = imm;
 }
+//Todo:: modify all operation with basic rtl_op
+
 
 #define c_add(a, b) ((a) + (b))
 #define c_sub(a, b) ((a) - (b))
@@ -91,11 +93,11 @@ static inline void rtl_lr_l(rtlreg_t *dest, int r) {
 }
 
 static inline void rtl_sr_b(int r, const rtlreg_t *src1) {
-    reg_b(r) = *src1;
+    reg_b(r) = *(uint8_t *)src1;
 }
 
 static inline void rtl_sr_w(int r, const rtlreg_t *src1) {
-    reg_w(r) = *src1;
+    reg_w(r) = *(uint16_t*)src1;
 }
 
 static inline void rtl_sr_l(int r, const rtlreg_t *src1) {
@@ -140,6 +142,7 @@ static inline void rtl_sr(int r, int width, const rtlreg_t *src1) {
 #define cpu_OF cpu.OF
 #define cpu_ZF cpu.ZF
 #define cpu_SF cpu.SF
+#define cpu_PF cpu.PF
 
 #define make_rtl_setget_eflags(f) \
   static inline void concat(rtl_set_, f) (const rtlreg_t* src) { \
@@ -156,6 +159,8 @@ make_rtl_setget_eflags(OF)
 make_rtl_setget_eflags(ZF)
 
 make_rtl_setget_eflags(SF)
+
+make_rtl_setget_eflags(PF)
 
 static inline void rtl_mv(rtlreg_t *dest, const rtlreg_t *src1) {
     // dest <- src1
@@ -197,14 +202,14 @@ static inline void rtl_push(const rtlreg_t *src1) {
     // M[esp] <- src1
 //    TODO();
     cpu.esp -= 4;
-    rtl_sm(cpu.esp, 4, src1);
+    rtl_sm(&cpu.esp, 4, src1);
 
 }
 
 static inline void rtl_pop(rtlreg_t *dest) {
     // dest <- M[esp]
     // esp <- esp + 4
-    rtl_lm(*dest, cpu.esp, 4);
+    rtl_lm(dest, &cpu.esp, 4);
     cpu.esp += 4;
 }
 
@@ -228,13 +233,13 @@ static inline void rtl_neq0(rtlreg_t *dest, const rtlreg_t *src1) {
 }
 
 struct {
-    unsigned int x:24
+    unsigned int x:24;
 } unsignedP24;
 struct {
-    unsigned int x:16
+    unsigned int x:16;
 } unsignedP16;
 struct {
-    unsigned int x:8
+    unsigned int x:8;
 } unsignedP8;
 
 
@@ -263,16 +268,20 @@ static inline void rtl_update_ZF(const rtlreg_t *result, int width) {
     // eflags.ZF <- is_zero(result[width * 8 - 1 .. 0])
     switch (width) {
         case 4:
-            rtl_set_CF(result == 0);
+            t0 = (int)(*result == 0U);
+            rtl_set_CF(&t0);
             return;
         case 3:
-            rtl_set_CF((unsignedP24.x = result) == 0);
+            t0 = (int)((unsignedP24.x = *result) == 0U);
+            rtl_set_CF(&t0);
             return;
         case 2:
-            rtl_set_CF(((uint16_t) result) == 0);
+            t0 = ((*(uint16_t*)result) == 0U);
+            rtl_set_CF(&t0);
             return;
         case 1:
-            rtl_set_CF(((uint8_t) result) == 0);
+            t0 = (int)((*(uint8_t*)result)  == 0U);
+            rtl_set_CF(&t0);
             return;
         default:
             assert(0);
@@ -284,9 +293,16 @@ static inline void rtl_update_ZF(const rtlreg_t *result, int width) {
 
 static inline void rtl_update_SF(const rtlreg_t *result, int width) {
     // eflags.SF <- is_sign(result[width * 8 - 1 .. 0])
-    TODO();
+
+    rtl_sext(&t0,result,width);
+    rtl_shri(&t0,&t0,31);
+    rtl_set_SF(  &t0);
 }
 
+static  inline void rtl_update_PF(const rtlreg_t*result){
+    rtl_andi(&t0,result,1U);
+    rtl_set_PF(&t0);
+}
 static inline void rtl_update_ZFSF(const rtlreg_t *result, int width) {
     rtl_update_ZF(result, width);
     rtl_update_SF(result, width);
