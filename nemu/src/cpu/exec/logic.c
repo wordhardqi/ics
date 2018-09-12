@@ -14,7 +14,7 @@ make_EHelper(and) {
 
 make_EHelper(xor) {
 //  TODO();
-  rtl_and(&t2,&id_dest->val,&id_src->val);
+  rtl_xor(&t2,&id_dest->val,&id_src->val);
   operand_write(id_dest,&t2);
   rtl_set_OF(&tzero);
   rtl_set_CF(&tzero);
