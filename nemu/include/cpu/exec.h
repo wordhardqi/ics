@@ -4,6 +4,7 @@
 #include "nemu.h"
 
 #define make_EHelper(name) void concat(exec_, name) (vaddr_t *eip)
+#define check_of null
 typedef void (*EHelper) (vaddr_t *);
 
 #include "cpu/decode.h"

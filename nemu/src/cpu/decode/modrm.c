@@ -71,6 +71,7 @@ void load_addr(vaddr_t *eip, ModR_M *m, Operand *rm) {
   }
   else {
     sprintf(rm->str, "%s(%s%s)", disp_buf, base_buf, index_buf);
+//    Log("%s(%s%s), addr = 0x%x, %d, cpu.esi %u ", disp_buf, base_buf, index_buf,rm->addr, rm->addr,cpu.esi);
   }
 #endif
 

@@ -32,6 +32,8 @@ bool wp_eval(WP *wp){
             if(new_val != wp->value){
                 wp->value = new_val;
                 return true;
+            }else{
+                return false;
             }
         } else{
             Log("Fail to eval watchpoint with expr %s", wp->expr);

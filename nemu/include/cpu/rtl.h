@@ -73,11 +73,14 @@ rtl_idiv(rtlreg_t *q, rtlreg_t *r, const rtlreg_t *src1_hi, const rtlreg_t *src1
 }
 
 static inline void rtl_lm(rtlreg_t *dest, const rtlreg_t *addr, int len) {
-    *dest = vaddr_read(addr, len);
+//    *dest = vaddr_read(addr, len);
+    *dest = vaddr_read(*addr,len);
 }
 
 static inline void rtl_sm(rtlreg_t *addr, int len, const rtlreg_t *src1) {
-    vaddr_write(addr, len, *src1);
+//    vaddr_write(addr, len, *src1);
+        vaddr_write(*addr, len, *src1);
+
 }
 
 static inline void rtl_lr_b(rtlreg_t *dest, int r) {
@@ -202,21 +205,33 @@ static inline void rtl_push(const rtlreg_t *src1) {
     // M[esp] <- src1
 //    TODO();
     cpu.esp -= 4;
-    rtl_sm(cpu.esp, 4, src1);
+    rtl_sm(&cpu.esp, 4, src1);
 
+}
+static inline void rtl_push_16(const uint16_t *src){
+    cpu.esp -=2;
+    vaddr_write(cpu.esp,*src,2);
 }
 
 static inline void rtl_pop(rtlreg_t *dest) {
     // dest <- M[esp]
     // esp <- esp + 4
-    rtl_lm(dest, cpu.esp, 4);
+    rtl_lm(dest, &cpu.esp, 4);
     cpu.esp += 4;
 }
+static inline void rtl_pop_16(uint16_t *dest) {
+    // dest <- M[esp]
+    // esp <- esp + 4
+    int tmp = vaddr_read(cpu.esp,2);
+    *dest = tmp;
+    cpu.esp += 2;
+}
+
 
 static inline void rtl_eq0(rtlreg_t *dest, const rtlreg_t *src1) {
     // dest <- (src1 == 0 ? 1 : 0)
 //    TODO();
-    *dest = src1 == 0 ? 1 : 0;
+    *dest = *src1 == 0 ? 1 : 0;
 }
 
 
@@ -246,42 +261,44 @@ struct {
 static inline void rtl_msb(rtlreg_t *dest, const rtlreg_t *src1, int width) {
     // dest <- src1[width * 8 - 1]
 //    TODO();
-    switch (width) {
-        case 4:
-            *dest = *src1;
-            return;
-        case 3:
-            *dest = unsignedP24.x = *src1;
-            return;
-        case 2:
-            *(uint16_t *) dest = *(uint16_t *) src1;
-            return;
-        case 1:
-            *(uint8_t *) dest = *(uint8_t *) src1;
-            return;
-        default:
-            assert(0);
-    }
+      rtl_shri(dest,src1,width*8-1);
+//    switch (width) {
+//        case 4:
+//            *dest = *src1;
+//            return;
+//        case 3:
+//            *dest = unsignedP24.x = *src1;
+//            return;
+//        case 2:
+//            *(uint16_t *) dest = *(uint16_t *) src1;
+//            return;
+//        case 1:
+//            *(uint8_t *) dest = *(uint8_t *) src1;
+//            return;
+//        default:
+//            assert(0);
+//    }
 }
 
 static inline void rtl_update_ZF(const rtlreg_t *result, int width) {
     // eflags.ZF <- is_zero(result[width * 8 - 1 .. 0])
+    rtlreg_t tmp;
     switch (width) {
         case 4:
-            t0 = (int)(*result == 0U);
-            rtl_set_CF(&t0);
+            tmp = (int)(*result == 0U);
+            rtl_set_ZF(&tmp);
             return;
         case 3:
-            t0 = (int)((unsignedP24.x = *result) == 0U);
-            rtl_set_CF(&t0);
+            tmp = (int)((unsignedP24.x = *result) == 0U);
+            rtl_set_ZF(&tmp);
             return;
         case 2:
-            t0 = ((*(uint16_t*)result) == 0U);
-            rtl_set_CF(&t0);
+            tmp = ((*(uint16_t*)result) == 0U);
+            rtl_set_ZF(&tmp);
             return;
         case 1:
-            t0 = (int)((*(uint8_t*)result)  == 0U);
-            rtl_set_CF(&t0);
+            tmp = (int)((*(uint8_t*)result)  == 0U);
+            rtl_set_ZF(&tmp);
             return;
         default:
             assert(0);
@@ -293,15 +310,17 @@ static inline void rtl_update_ZF(const rtlreg_t *result, int width) {
 
 static inline void rtl_update_SF(const rtlreg_t *result, int width) {
     // eflags.SF <- is_sign(result[width * 8 - 1 .. 0])
+    rtlreg_t tmp;
 
-    rtl_sext(&t0,result,width);
-    rtl_shri(&t0,&t0,31);
-    rtl_set_SF(  &t0);
+    rtl_sext(&tmp,result,width);
+    rtl_shri(&tmp,&tmp,31);
+    rtl_set_SF(  &tmp);
 }
 
 static  inline void rtl_update_PF(const rtlreg_t*result){
-    rtl_andi(&t0,result,1U);
-    rtl_set_PF(&t0);
+    rtlreg_t tmp;
+    rtl_andi(&tmp,result,1U);
+    rtl_set_PF(&tmp);
 }
 static inline void rtl_update_ZFSF(const rtlreg_t *result, int width) {
     rtl_update_ZF(result, width);

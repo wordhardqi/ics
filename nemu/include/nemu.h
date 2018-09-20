@@ -5,4 +5,5 @@
 #include "memory/memory.h"
 #include "cpu/reg.h"
 #include "monitor/watchpoint.h"
+#include "cpu/decode.h"
 #endif
